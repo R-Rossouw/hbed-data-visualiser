@@ -170,6 +170,11 @@ function parseCSV(text){
   return {ix,rows};
 }
 
+/* Absolute bearing-temperature row, across detector vendors:
+   Phoenix "Bearing Temperature [A]"  ·  HTK/THD "Abs Temp [A]" / "Absolute Temp [A]".
+   Excludes compensated/differential/wheel temperatures. */
+const isAbsBearingTemp=t=>/\[A\]/.test(t)&&/temp/i.test(t)&&(/\babs/i.test(t)||/bearing\s*temp/i.test(t));
+
 /* ===== model ===== */
 let MODEL={};
 function build(parsed){
@@ -181,7 +186,7 @@ function build(parsed){
     if(type==='Ambient Temp [T]'){const v=parseFloat(clean(r[ix['Value']]));if(!isNaN(v))M.ambient=v;continue;}
     const vpos=parseInt(clean(r[ix['V Pos']]))||0;
     if(type==='Type [V]'){const code=clean(r[ix['Value']]);if(code){(M.wmap[vpos]||(M.wmap[vpos]={vpos,axles:{}})).vtype=code;}continue;}
-    if(!/^Bearing Temperature/i.test(type))continue;
+    if(!isAbsBearingTemp(type))continue;
     const v=parseFloat(clean(r[ix['Value']]));if(isNaN(v))continue;
     const veh=clean(r[ix['Vehicle #']]),mpos=parseInt(clean(r[ix['M Pos']]))||0,
           side=clean(r[ix['Side']])==='Right'?'R':'L';
@@ -330,7 +335,7 @@ function loadText(text){
   try{
     build(parseCSV(text));
     const ids=Object.keys(MODEL).filter(t=>MODEL[t].bearings.length);
-    if(!ids.length)throw new Error('No "Bearing Temperature [A]" rows found in this file.');
+    if(!ids.length)throw new Error('No absolute bearing-temperature readings found. The tool reads "Abs Temp [A]" (HTK/THD) or "Bearing Temperature [A]" (Phoenix) from a Conditions export.');
     ids.sort((a,b)=>stats(MODEL[b].all).max-stats(MODEL[a].all).max);
     $('trainsel').innerHTML=ids.map(t=>`<option value="${t}">${t} — max ${stats(MODEL[t].all).max.toFixed(0)}°C · ${MODEL[t].wagons.length} wagons</option>`).join('');
     $('trainsel').onchange=e=>selectTrain(e.target.value);
