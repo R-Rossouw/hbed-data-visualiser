@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Visualiser — HBED bearing temperature</title>
+<style>
+  :root{
+    --ink:#1b1f24; --muted:#5d6b79; --line:#dde3ea; --bg:#fff; --panel:#f7f9fb;
+    --accent:#0d4f8b; --amber:#c77700; --red:#b00020; --teal:#119e7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI",Arial,sans-serif;color:var(--ink);background:#eaeef2;font-size:14px;line-height:1.4;}
+  header.top{background:linear-gradient(180deg,#1b2733,#1b1f24);color:#fff;padding:14px 22px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;}
+  header.top h1{font-size:18px;margin:0;font-weight:600;letter-spacing:.2px;}
+  header.top .sub{font-size:11.5px;color:#aebccb;}
+  main{max-width:1320px;margin:18px auto;padding:0 18px 70px;}
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:16px 18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(20,30,45,.05);}
+  h2{font-size:13.5px;text-transform:uppercase;letter-spacing:.5px;margin:0 0 12px;border-left:4px solid var(--ink);padding-left:9px;}
+  h2 .hint{font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:12px;margin-left:8px;}
+  #drop{border:2px dashed #9fb6cc;border-radius:11px;padding:36px;text-align:center;color:var(--muted);background:#f3f8fd;cursor:pointer;transition:.15s;}
+  #drop.hot{background:#e4effb;border-color:var(--accent);color:var(--ink);}
+  #drop strong{color:var(--accent);}
+  .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px;}
+  select,button{font:inherit;padding:7px 11px;border:1px solid var(--line);border-radius:7px;background:#fff;cursor:pointer;color:var(--ink);}
+  select:hover,button:hover{border-color:#aab8c6;}
+  .seg button{border-radius:0;margin-left:-1px;}
+  .seg button:first-child{border-radius:7px 0 0 7px;} .seg button:last-child{border-radius:0 7px 7px 0;}
+  button.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  button.ghost{background:#fff;}
+  .stats{display:flex;flex-wrap:wrap;gap:10px;}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:9px 13px;min-width:92px;}
+  .stat .v{font-size:21px;font-weight:700;line-height:1.1;}
+  .stat .v.red{color:var(--red);} .stat .v.amber{color:var(--amber);}
+  .stat .l{font-size:10px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:2px;}
+  .stripwrap{overflow-x:auto;border:1px solid var(--line);border-radius:7px;background:#fff;padding:6px 0;}
+  svg{display:block;}
+  .wbox{fill:#fcfdfe;stroke:#dbe2ea;stroke-width:.8;}
+  .cell{stroke:#fff;stroke-width:.6;}
+  .cell.a2{stroke:var(--amber);stroke-width:1.1;} .cell.a3{stroke:var(--red);stroke-width:1.3;}
+  .wlabel{font-size:8px;fill:var(--muted);} .rowlabel{font-size:10px;fill:var(--muted);font-weight:600;}
+  .legend{display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--muted);margin-top:10px;flex-wrap:wrap;}
+  .legendbar{width:170px;height:13px;border-radius:3px;border:1px solid #ccc;}
+  .axislabel{font-size:10px;fill:var(--muted);} .grid line{stroke:#eef1f4;}
+  .thr93{stroke:var(--amber);stroke-width:1.1;stroke-dasharray:5 3;}
+  .thr120{stroke:var(--red);stroke-width:1.1;stroke-dasharray:5 3;}
+  .thrdiff{stroke:var(--amber);stroke-width:1;stroke-dasharray:4 3;}
+  .lineL{fill:none;stroke:var(--accent);stroke-width:1.4;} .lineR{fill:none;stroke:var(--teal);stroke-width:1.4;}
+  .diagline{stroke:#c2ccd6;stroke-dasharray:5 4;}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:860px){.twocol{grid-template-columns:1fr;}}
+  .tip{position:fixed;pointer-events:none;background:#1b1f24;color:#fff;font-size:11px;padding:6px 9px;border-radius:5px;opacity:0;transition:.05s;z-index:60;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+  .muted{color:var(--muted);font-size:12px;} .hidden{display:none;}
+  .note{font-size:12px;color:var(--muted);margin:8px 0 0;}
+  footer.disc{font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin-top:6px;}
+  @media print{
+    body{background:#fff;} header.top{background:#1b1f24 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    #loadcard,.controls .seg,#printbtn,#drop{display:none !important;}
+    .card{break-inside:avoid;box-shadow:none;} main{max-width:none;}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Data Visualiser</h1>
+  <div class="sub">HBED bearing temperature &middot; ITCMS Conditions export &middot; BBF3244 limits (93 / 120 / 40&nbsp;&deg;C)</div>
+</header>
+
+<main>
+  <div class="card" id="loadcard">
+    <h2>1 &middot; Load data</h2>
+    <div id="drop">
+      <p style="margin:0 0 6px;font-size:15px;">Drop an <strong>HBED ITCMS &ldquo;Conditions&rdquo; CSV export</strong> here</p>
+      <p class="muted" style="margin:0;">or click to select a file &mdash; everything runs locally in your browser; no data leaves your machine</p>
+    </div>
+    <input type="file" id="file" accept=".csv,.txt" class="hidden">
+    <p id="loadmsg" class="muted" style="margin:11px 0 0;"></p>
+  </div>
+
+  <div id="app" class="hidden">
+    <div class="card">
+      <div class="controls">
+        <label>Train pass&nbsp; <select id="trainsel"></select></label>
+        <span style="flex:1"></span>
+        <button id="printbtn" class="ghost">Print / Save&nbsp;PDF</button>
+      </div>
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <div class="card">
+      <h2 id="mainTitle">Train thermal strip<span class="hint" id="mainHint"></span></h2>
+      <div class="controls seg" style="margin-bottom:10px;">
+        <button id="bAbs" class="active">Absolute &deg;C</button>
+        <button id="bDelta">Rise above ambient (&Delta;T)</button>
+        <button id="bProfile">Left / Right profile</button>
+      </div>
+      <div class="stripwrap" id="stripwrap"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="twocol">
+      <div class="card">
+        <h2>Left vs Right per axle<span class="hint">differential view</span></h2>
+        <div id="scatter"></div>
+        <p class="note">Each point is one <strong>axle</strong>: left-bearing &deg;C (x) against right-bearing &deg;C (y).
+          On the diagonal &rarr; both sides equal (healthy). Off the diagonal &rarr; one side hotter; the distance from
+          the diagonal <em>is</em> the differential. Points outside the shaded band exceed the <strong>40&nbsp;&deg;C Type&nbsp;2
+          differential limit</strong>. A whole cloud shifted off-diagonal one way suggests detector L/R bias, not many faults.</p>
+      </div>
+      <div class="card">
+        <h2>Hottest bearings<span class="hint">top of this pass</span></h2>
+        <div id="ranking"></div>
+        <p class="note" id="ranknote"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <footer class="disc">
+        <strong>Visualisation aid only.</strong> This tool renders measured ITCMS Conditions data and draws the BBF3244
+        alarm limits for reference (Type&nbsp;2 absolute 93&nbsp;&deg;C, Type&nbsp;3 absolute 120&nbsp;&deg;C, Type&nbsp;2
+        differential 40&nbsp;&deg;C). It does not raise alarms or determine alarm validity &mdash; the controlled
+        specification BBF3244 and the ITCMS govern. &ldquo;Rise above ambient (&Delta;T)&rdquo; is a diagnostic view
+        (bearing &minus; ambient air temperature); the spec alarm limits are <em>absolute</em> and are not applied in that view.
+      </footer>
+    </div>
+  </div>
+</main>
+
+<div class="tip" id="tip"></div>
+
+<script>
+"use strict";
+/* ===== BBF3244 limits (single source of truth) ===== */
+const T2_ABS=93, T3_ABS=120, T2_DIFF=40;
+
+const tip=document.getElementById('tip');
+const showTip=(e,h)=>{tip.innerHTML=h;tip.style.opacity=1;tip.style.left=(e.clientX+13)+'px';tip.style.top=(e.clientY+13)+'px';};
+const hideTip=()=>tip.style.opacity=0;
+
+/* ===== colour ramps ===== */
+function ramp(v,stops){
+  if(v<=stops[0][0])return rgb(stops[0][1]);
+  for(let i=1;i<stops.length;i++){if(v<=stops[i][0]){
+    const [v0,c0]=stops[i-1],[v1,c1]=stops[i];const f=(v-v0)/(v1-v0);
+    return rgb(c0.map((x,j)=>x+(c1[j]-x)*f));}}
+  return rgb(stops[stops.length-1][1]);
+}
+const rgb=a=>`rgb(${a.map(x=>Math.round(x)).join(',')})`;
+const ABS_STOPS=[[15,[59,110,165]],[45,[90,170,160]],[75,[225,200,90]],[93,[230,144,46]],[110,[214,90,42]],[120,[176,0,32]],[140,[120,0,22]]];
+const DT_STOPS =[[0,[59,110,165]],[20,[90,170,160]],[40,[225,200,90]],[60,[214,90,42]],[80,[176,0,32]]];
+const absColor=t=>ramp(t,ABS_STOPS);
+const dtColor=d=>ramp(d,DT_STOPS);
+
+/* ===== CSV parse ===== */
+const clean=v=>(v||'').trim().replace(/^=/,'').replace(/^"|"$/g,'');
+function splitLine(line){const out=[];let c='',q=false;
+  for(let i=0;i<line.length;i++){const ch=line[i];
+    if(ch==='"')q=!q; else if(ch===','&&!q){out.push(c);c='';} else c+=ch;}
+  out.push(c);return out;}
+function parseCSV(text){
+  const lines=text.split(/\r?\n/);
+  const hi=lines.findIndex(l=>/^"?Component"?\s*,/.test(l));
+  if(hi<0)throw new Error('Not a recognised ITCMS Conditions export (no "Component" header row found).');
+  const hdr=splitLine(lines[hi]).map(clean), ix={};hdr.forEach((h,i)=>ix[h]=i);
+  for(const n of ['Train #','V Pos','M Pos','Side','Type','Value'])
+    if(!(n in ix))throw new Error('Missing expected column: '+n);
+  const rows=[];for(let i=hi+1;i<lines.length;i++){if(!lines[i].trim())continue;
+    const c=splitLine(lines[i]);if(c.length>=hdr.length)rows.push(c);}
+  return {ix,rows};
+}
+
+/* ===== model ===== */
+let MODEL={};
+function build(parsed){
+  const {ix,rows}=parsed;MODEL={};
+  for(const r of rows){
+    const type=clean(r[ix['Type']]),train=clean(r[ix['Train #']])||'(unknown)';
+    if(!MODEL[train])MODEL[train]={wmap:{},ambient:null,bearings:[]};
+    const M=MODEL[train];
+    if(type==='Ambient Temp [T]'){const v=parseFloat(clean(r[ix['Value']]));if(!isNaN(v))M.ambient=v;continue;}
+    const vpos=parseInt(clean(r[ix['V Pos']]))||0;
+    if(type==='Type [V]'){const code=clean(r[ix['Value']]);if(code){(M.wmap[vpos]||(M.wmap[vpos]={vpos,axles:{}})).vtype=code;}continue;}
+    if(!/^Bearing Temperature/i.test(type))continue;
+    const v=parseFloat(clean(r[ix['Value']]));if(isNaN(v))continue;
+    const veh=clean(r[ix['Vehicle #']]),mpos=parseInt(clean(r[ix['M Pos']]))||0,
+          side=clean(r[ix['Side']])==='Right'?'R':'L';
+    const w=M.wmap[vpos]||(M.wmap[vpos]={vpos,axles:{}});w.veh=w.veh||veh;
+    (w.axles[mpos]||(w.axles[mpos]={}))[side]=v;
+    M.bearings.push({vpos,veh,mpos,side,t:v});
+  }
+  for(const t in MODEL){const M=MODEL[t];
+    M.wagons=Object.values(M.wmap).sort((a,b)=>a.vpos-b.vpos);
+    M.all=M.bearings.map(b=>b.t);delete M.wmap;}
+}
+/* sample statistics (n-1) */
+function stats(a){const n=a.length;if(!n)return{n:0};
+  const m=a.reduce((s,x)=>s+x,0)/n;
+  const sd=n>1?Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/(n-1)):0;
+  const sorted=[...a].sort((x,y)=>x-y);
+  const median=n%2?sorted[(n-1)/2]:(sorted[n/2-1]+sorted[n/2])/2;
+  return{n,m,sd,median,max:sorted[n-1],min:sorted[0]};}
+
+/* ===== render ===== */
+let CUR=null,MODE='abs';
+const $=id=>document.getElementById(id);
+function selectTrain(id){CUR=id;render();}
+function render(){
+  const M=MODEL[CUR];if(!M)return;const s=stats(M.all);
+  const n2=M.all.filter(t=>t>=T2_ABS&&t<T3_ABS).length, n3=M.all.filter(t=>t>=T3_ABS).length;
+  const diffs=[];M.wagons.forEach(w=>Object.values(w.axles).forEach(ax=>{if(ax.L!=null&&ax.R!=null)diffs.push(Math.abs(ax.L-ax.R));}));
+  const ndiff=diffs.filter(d=>d>=T2_DIFF).length;
+  $('stats').innerHTML=[
+    ['Wagons',M.wagons.length],['Bearings',s.n],
+    ['Mean &deg;C',s.m.toFixed(1)],['Max &deg;C',s.max.toFixed(0),s.max>=T3_ABS?'red':s.max>=T2_ABS?'amber':''],
+    ['Ambient &deg;C',M.ambient??'&mdash;'],
+    ['Type 2 abs (93&ndash;120)',n2,n2?'amber':''],['Type 3 abs (&ge;120)',n3,n3?'red':''],
+    ['Type 2 diff (&ge;40)',ndiff,ndiff?'amber':'']
+  ].map(([l,v,c])=>`<div class="stat"><div class="v ${c||''}">${v}</div><div class="l">${l}</div></div>`).join('');
+  if(MODE==='profile')drawProfile(M,s);else drawStrip(M,MODE==='delta',s);
+  drawScatter(M);drawRanking(M,s);
+}
+
+/* ---- heatmap strip (fixed-width wagons, axles centred) ---- */
+function drawStrip(M,delta,s){
+  const amb=M.ambient;
+  if(delta&&amb==null){$('mainTitle').firstChild.textContent='Train thermal strip';
+    $('stripwrap').innerHTML='<p class="muted" style="padding:14px">No ambient temperature in this export &mdash; &Delta;T view unavailable.</p>';
+    $('legend').innerHTML='';return;}
+  $('mainTitle').firstChild.textContent=delta?'Train thermal strip — rise above ambient (ΔT)':'Train thermal strip';
+  $('mainHint').textContent=delta?`ambient ${amb}°C subtracted`:'';
+  const maxAx=Math.max(...M.wagons.map(w=>Object.keys(w.axles).length));
+  const cw=M.wagons.length>200?7:M.wagons.length>80?10:14;
+  const ch=13,wpad=3,gap=3,labelH=12,leftPad=18;
+  const wagonW=maxAx*cw+wpad*2;
+  const W=leftPad+M.wagons.length*(wagonW+gap)+12, H=labelH+2*ch+wpad*2+6;
+  let svg=`<svg width="${W}" height="${H}">`;
+  svg+=`<text class="rowlabel" x="4" y="${labelH+wpad+ch-3}">L</text><text class="rowlabel" x="4" y="${labelH+wpad+2*ch-3}">R</text>`;
+  M.wagons.forEach((w,i)=>{
+    const x=leftPad+i*(wagonW+gap);
+    svg+=`<rect class="wbox" x="${x}" y="${labelH}" width="${wagonW}" height="${2*ch+wpad*2}" rx="2"/>`;
+    if(M.wagons.length<=80||(i%10===0))svg+=`<text class="wlabel" x="${x+wagonW/2}" y="${labelH-3}" text-anchor="middle">${w.vpos}</text>`;
+    const axles=Object.keys(w.axles).map(Number).sort((a,b)=>a-b);
+    const innerW=axles.length*cw, x0=x+(wagonW-innerW)/2; // centre axles in fixed box
+    axles.forEach((m,j)=>{const ax=w.axles[m];
+      [['L',0],['R',1]].forEach(([side,row])=>{const t=ax[side];if(t==null)return;
+        const val=delta?t-amb:t, col=delta?dtColor(val):absColor(t);
+        const cls=delta?'cell':(t>=T3_ABS?'cell a3':t>=T2_ABS?'cell a2':'cell');
+        const cx=x0+j*cw, cy=labelH+wpad+row*ch;
+        svg+=`<rect class="${cls}" x="${cx}" y="${cy}" width="${cw-1}" height="${ch-1}" fill="${col}" `
+          +`data-t="${t}" data-d="${(t-(amb||0)).toFixed(0)}" data-s="${side}" data-v="${w.vpos}" data-m="${m}" data-veh="${w.veh||''}" data-vt="${w.vtype||''}"/>`;});});
+  });
+  svg+=`</svg>`;const wrap=$('stripwrap');wrap.innerHTML=svg;
+  wrap.querySelectorAll('rect.cell').forEach(r=>{
+    r.onmousemove=e=>showTip(e,`Wagon ${r.dataset.v} &middot; Axle ${r.dataset.m} ${r.dataset.s==='L'?'Left':'Right'}`
+      +`<br><b>${r.dataset.t} &deg;C</b>${M.ambient!=null?` &middot; &Delta;T ${r.dataset.d}&deg;`:''}`
+      +`${r.dataset.veh?'<br>veh '+r.dataset.veh:''}${r.dataset.vt?' &middot; '+r.dataset.vt:''}`);
+    r.onmouseleave=hideTip;});
+  if(delta)$('legend').innerHTML=`<span>0&deg;</span><div class="legendbar" style="background:linear-gradient(90deg,${dtColor(0)},${dtColor(20)},${dtColor(40)},${dtColor(60)},${dtColor(80)})"></div><span>+80&deg;</span><span style="margin-left:12px">Rise above ambient (${amb}&deg;C). Alarm limits are absolute &mdash; not shown here.</span><span style="margin-left:12px">Top row = Left, bottom = Right.</span>`;
+  else $('legend').innerHTML=`<span>cool</span><div class="legendbar" style="background:linear-gradient(90deg,${absColor(15)},${absColor(60)},${absColor(93)},${absColor(120)})"></div><span>hot</span><span style="margin-left:12px;color:var(--amber)">&#9633; 93&deg;C Type 2</span><span style="color:var(--red)">&#9633; 120&deg;C Type 3</span><span style="margin-left:12px">Top row = Left, bottom = Right. Boxes = vehicles; cells = axles.</span>`;
+}
+
+/* ---- L/R profile ---- */
+function drawProfile(M,s){
+  $('mainTitle').firstChild.textContent='Left / Right bearing profile along the train';$('mainHint').textContent='';
+  const seq=[];M.wagons.forEach(w=>Object.keys(w.axles).map(Number).sort((a,b)=>a-b).forEach(m=>seq.push({w:w.vpos,m,...w.axles[m]})));
+  const W=Math.max(900,seq.length*3+90),H=300,pl=46,pr=16,pt=14,pb=24;
+  const maxT=Math.max(T3_ABS+10,s.max+6);
+  const X=i=>pl+(i/(seq.length-1||1))*(W-pl-pr), Y=t=>pt+(1-t/maxT)*(H-pt-pb);
+  let svg=`<svg width="${W}" height="${H}"><g class="grid">`;
+  for(let t=0;t<=maxT;t+=20)svg+=`<line x1="${pl}" y1="${Y(t)}" x2="${W-pr}" y2="${Y(t)}"/><text class="axislabel" x="8" y="${Y(t)+3}">${t}</text>`;
+  svg+=`</g><line class="thr120" x1="${pl}" y1="${Y(T3_ABS)}" x2="${W-pr}" y2="${Y(T3_ABS)}"/><text class="axislabel" x="${W-pr-2}" y="${Y(T3_ABS)-3}" text-anchor="end" fill="#b00020">120&deg;C Type 3</text>`;
+  svg+=`<line class="thr93" x1="${pl}" y1="${Y(T2_ABS)}" x2="${W-pr}" y2="${Y(T2_ABS)}"/><text class="axislabel" x="${W-pr-2}" y="${Y(T2_ABS)-3}" text-anchor="end" fill="#c77700">93&deg;C Type 2</text>`;
+  if(M.ambient!=null)svg+=`<line x1="${pl}" y1="${Y(M.ambient)}" x2="${W-pr}" y2="${Y(M.ambient)}" stroke="#9bb" stroke-dasharray="2 3"/><text class="axislabel" x="${pl+2}" y="${Y(M.ambient)-3}" fill="#789">ambient ${M.ambient}&deg;</text>`;
+  const path=(k,c)=>{let d='';seq.forEach((p,i)=>{if(p[k]==null)return;d+=(d?'L':'M')+X(i).toFixed(1)+' '+Y(p[k]).toFixed(1);});return`<path class="${c}" d="${d}"/>`;};
+  svg+=path('L','lineL')+path('R','lineR');
+  svg+=`<text x="${W-pr}" y="${pt+11}" text-anchor="end" font-size="11" fill="#0d4f8b">&mdash; Left</text><text x="${W-pr}" y="${pt+25}" text-anchor="end" font-size="11" fill="#119e7a">&mdash; Right</text></svg>`;
+  $('stripwrap').innerHTML=svg;
+  $('legend').innerHTML='<span class="muted">Sequential axle index along the train (wagon 1 &rarr; last). Dashed lines = BBF3244 absolute limits.</span>';
+}
+
+/* ---- L/R differential scatter ---- */
+function drawScatter(M){
+  const pts=[];M.wagons.forEach(w=>Object.values(w.axles).forEach(ax=>{if(ax.L!=null&&ax.R!=null)pts.push([ax.L,ax.R,w.vpos]);}));
+  const W=580,H=320,pl=44,pr=14,pt=12,pb=34;
+  const hi=Math.max(T3_ABS,...pts.flatMap(p=>[p[0],p[1]]))+5,lo=0;
+  const X=v=>pl+((v-lo)/(hi-lo))*(W-pl-pr), Y=v=>pt+(1-(v-lo)/(hi-lo))*(H-pt-pb);
+  let svg=`<svg width="${W}" height="${H}">`;
+  // ±40 differential band (shaded)
+  const band=`${X(lo)},${Y(lo+T2_DIFF)} ${X(hi-T2_DIFF)},${Y(hi)} ${X(hi)},${Y(hi)} ${X(hi)},${Y(hi-T2_DIFF)} ${X(lo+T2_DIFF)},${Y(lo)} ${X(lo)},${Y(lo)}`;
+  svg+=`<polygon points="${band}" fill="#eef4f0"/>`;
+  svg+=`<line class="diagline" x1="${X(lo)}" y1="${Y(lo)}" x2="${X(hi)}" y2="${Y(hi)}"/>`;
+  svg+=`<line class="thrdiff" x1="${X(lo)}" y1="${Y(lo+T2_DIFF)}" x2="${X(hi-T2_DIFF)}" y2="${Y(hi)}"/>`;
+  svg+=`<line class="thrdiff" x1="${X(lo+T2_DIFF)}" y1="${Y(lo)}" x2="${X(hi)}" y2="${Y(hi-T2_DIFF)}"/>`;
+  pts.forEach(([l,r,v])=>{const d=Math.abs(l-r),out=d>=T2_DIFF;
+    svg+=`<circle cx="${X(l).toFixed(1)}" cy="${Y(r).toFixed(1)}" r="${out?4:3}" fill="${absColor(Math.max(l,r))}" stroke="${out?'#b00020':'#fff'}" stroke-width="${out?1.3:.4}"><title>Wagon ${v}: L ${l} / R ${r} &deg;C (diff ${d}&deg;)</title></circle>`;});
+  for(let t=0;t<=hi;t+=20)svg+=`<text class="axislabel" x="${X(t)}" y="${H-pb+15}" text-anchor="middle">${t}</text><text class="axislabel" x="8" y="${Y(t)+3}">${t}</text>`;
+  svg+=`<text class="axislabel" x="${pl+(W-pl-pr)/2}" y="${H-6}" text-anchor="middle">Left bearing &deg;C</text>`;
+  svg+=`<text class="axislabel" transform="translate(13,${pt+(H-pt-pb)/2}) rotate(-90)" text-anchor="middle">Right bearing &deg;C</text>`;
+  svg+=`<text class="axislabel" x="${X(hi)-4}" y="${Y(lo)-6}" text-anchor="end">shaded = within 40&deg;C diff</text>`;
+  svg+=`</svg>`;$('scatter').innerHTML=svg;
+}
+
+/* ---- hottest bearings ranking ---- */
+function drawRanking(M,s){
+  const top=[...M.bearings].sort((a,b)=>b.t-a.t).slice(0,10);
+  const W=580,rowH=24,pl=150,pr=46,pt=6,H=pt+top.length*rowH+24;
+  const hi=Math.max(T3_ABS,top[0].t)+6,X=t=>pl+(t/hi)*(W-pl-pr);
+  let svg=`<svg width="${W}" height="${H}">`;
+  svg+=`<line class="thr93" x1="${X(T2_ABS)}" y1="${pt}" x2="${X(T2_ABS)}" y2="${pt+top.length*rowH}"/>`;
+  svg+=`<line class="thr120" x1="${X(T3_ABS)}" y1="${pt}" x2="${X(T3_ABS)}" y2="${pt+top.length*rowH}"/>`;
+  top.forEach((b,i)=>{const y=pt+i*rowH;
+    svg+=`<text x="6" y="${y+rowH/2+4}" font-size="11" fill="#334">W${b.vpos} A${b.mpos} ${b.side==='L'?'L':'R'}${b.veh?' &middot; '+b.veh:''}</text>`;
+    svg+=`<rect x="${pl}" y="${y+3}" width="${Math.max(1,X(b.t)-pl)}" height="${rowH-8}" rx="2" fill="${absColor(b.t)}"/>`;
+    svg+=`<text x="${X(b.t)+4}" y="${y+rowH/2+4}" font-size="11" font-weight="600" fill="#334">${b.t}&deg;</text>`;});
+  svg+=`<text class="axislabel" x="${X(T2_ABS)}" y="${H-8}" text-anchor="middle" fill="#c77700">93</text>`;
+  svg+=`<text class="axislabel" x="${X(T3_ABS)}" y="${H-8}" text-anchor="middle" fill="#b00020">120</text>`;
+  svg+=`</svg>`;$('ranking').innerHTML=svg;
+  $('ranknote').innerHTML=`Hottest ${top.length} of ${s.n} bearings. Median ${s.median.toFixed(0)}&deg;C, spread &sigma; ${s.sd.toFixed(1)}&deg;C (sample). `
+    +`The hottest bearing sits ${((top[0].t-s.median)/(s.sd||1)).toFixed(1)} &sigma; above the median of this pass.`;
+}
+
+/* ===== wire up ===== */
+function loadText(text){
+  try{
+    build(parseCSV(text));
+    const ids=Object.keys(MODEL).filter(t=>MODEL[t].bearings.length);
+    if(!ids.length)throw new Error('No "Bearing Temperature [A]" rows found in this file.');
+    ids.sort((a,b)=>stats(MODEL[b].all).max-stats(MODEL[a].all).max);
+    $('trainsel').innerHTML=ids.map(t=>`<option value="${t}">${t} — max ${stats(MODEL[t].all).max.toFixed(0)}°C · ${MODEL[t].wagons.length} wagons</option>`).join('');
+    $('trainsel').onchange=e=>selectTrain(e.target.value);
+    $('app').classList.remove('hidden');
+    $('loadmsg').textContent=`Loaded ${ids.length} train pass(es) · ${Object.values(MODEL).reduce((a,m)=>a+m.bearings.length,0)} bearing readings.`;
+    selectTrain(ids[0]);
+  }catch(err){$('loadmsg').innerHTML='<span style="color:#b00020">'+err.message+'</span>';$('app').classList.add('hidden');}
+}
+const drop=$('drop'),fileIn=$('file');
+drop.onclick=()=>fileIn.click();
+fileIn.onchange=e=>{const f=e.target.files[0];if(f)f.text().then(loadText);};
+['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('hot');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('hot');}));
+drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)f.text().then(loadText);});
+function setMode(m){MODE=m;['bAbs','bDelta','bProfile'].forEach(id=>$(id).classList.remove('active'));
+  $({abs:'bAbs',delta:'bDelta',profile:'bProfile'}[m]).classList.add('active');render();}
+$('bAbs').onclick=()=>setMode('abs');$('bDelta').onclick=()=>setMode('delta');$('bProfile').onclick=()=>setMode('profile');
+$('printbtn').onclick=()=>window.print();
+</script>
+</body>
+</html>

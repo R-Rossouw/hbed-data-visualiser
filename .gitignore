@@ -1,0 +1,12 @@
+# local / OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# editor
+.vscode/
+.idea/
+
+# sample data — do not publish operational ITCMS exports
+sample-data/
+*.csv
