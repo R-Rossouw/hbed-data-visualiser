@@ -1,5 +1,7 @@
 # Data Visualiser — HBED bearing temperature
 
+**▶ Live tool: https://r-rossouw.github.io/hbed-data-visualiser/**
+
 A browser-based tool for visualising **HBED (Hot Bearing Evaluator Detector) bearing-temperature
 data** exported from the **ITCMS "Conditions" query**. It renders a single train pass as a thermal
 strip, shows the left/right differential, and ranks the hottest bearings — with the **BBF3244**
@@ -25,16 +27,6 @@ specification **BBF3244** and the ITCMS remain authoritative.
 4. **Print / Save PDF** captures the current view as a report.
 
 Everything runs locally in the browser — **no data is uploaded**.
-
-## Alarm limits (BBF3244)
-
-| Type | Model | Limit |
-|------|-------|-------|
-| Type 3 | Absolute | 120 °C — Stop Immediately |
-| Type 2 | Absolute | 93 °C — Continue to Station |
-| Type 2 | Differential (L−R on an axle) | 40 °C — Continue to Station |
-
-Limits are defined once at the top of the script in `index.html` (`T2_ABS`, `T3_ABS`, `T2_DIFF`).
 
 ## Hosting
 
