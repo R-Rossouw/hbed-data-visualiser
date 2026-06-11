@@ -10,7 +10,15 @@
     --accent:#0d4f8b; --amber:#c77700; --red:#b00020; --teal:#119e7a;
   }
   *{box-sizing:border-box;}
-  body{margin:0;font-family:"Segoe UI",Arial,sans-serif;color:var(--ink);background:#eaeef2;font-size:14px;line-height:1.4;}
+  body{margin:0;font-family:"Segoe UI",Arial,sans-serif;color:var(--ink);font-size:14px;line-height:1.4;
+    /* on-theme backdrop: faint freight-train + data-trend illustration along the bottom,
+       with "hot bearing" markers in the tool's own heatmap colours */
+    background-color:#eef2f6;
+    background-image:url("assets/train-bg.svg");
+    background-repeat:no-repeat;
+    background-position:bottom center;
+    background-size:100% auto;
+    background-attachment:fixed;}
   header.top{background:linear-gradient(180deg,#1b2733,#1b1f24);color:#fff;padding:14px 22px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;}
   header.top h1{font-size:18px;margin:0;font-weight:600;letter-spacing:.2px;}
   header.top .sub{font-size:11.5px;color:#aebccb;}

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 400" preserveAspectRatio="xMidYMax slice">
+
+  <!-- rail (wheels rest on its top edge at y=372) -->
+  <rect x="0" y="372" width="1440" height="4" fill="rgb(27,39,51)" fill-opacity="0.12"/>
+
+  <!-- ===== train (faint silhouette) ===== -->
+  <g fill="rgb(27,39,51)" fill-opacity="0.11">
+
+    <!-- locomotive: TFR Class 23E electric — full-width carbody, raked cab fronts both ends, flat roof.
+         Ends at x=222, keeping the 32px coupler gap to wagon 1. (Footplate/bogies/coupler unchanged.) -->
+    <path d="M58,352 L66,306 Q67,302 71,302 L209,302 Q213,302 214,306 L222,352 Z"/>
+    <rect x="54" y="348" width="168" height="6" rx="1"/>            <!-- footplate / underframe (ends at nose x=222, bottom at 354 = wheel tops) -->
+
+    <!-- couplers (uniform 30-wide, all on the same band: 2px past one body, meeting the next) -->
+    <rect x="224" y="350" width="30" height="6" rx="2"/>
+    <rect x="424" y="350" width="30" height="6" rx="2"/>
+    <rect x="624" y="350" width="30" height="6" rx="2"/>
+    <rect x="824" y="350" width="30" height="6" rx="2"/>
+    <rect x="1024" y="350" width="30" height="6" rx="2"/>
+    <rect x="1224" y="350" width="30" height="6" rx="2"/>
+
+    <!-- wagons: boxy bodies with a rounded top edge -->
+    <path d="M254,356 L254,318 Q254,313 259,313 L417,313 Q422,313 422,318 L422,356 Z"/>
+    <path d="M454,356 L454,318 Q454,313 459,313 L617,313 Q622,313 622,318 L622,356 Z"/>
+    <path d="M654,356 L654,318 Q654,313 659,313 L817,313 Q822,313 822,318 L822,356 Z"/>
+    <path d="M854,356 L854,318 Q854,313 859,313 L1017,313 Q1022,313 1022,318 L1022,356 Z"/>
+    <path d="M1054,356 L1054,318 Q1054,313 1059,313 L1217,313 Q1222,313 1222,318 L1222,356 Z"/>
+    <path d="M1254,356 L1254,318 Q1254,313 1259,313 L1417,313 Q1422,313 1422,318 L1422,356 Z"/>
+  </g>
+
+  <!-- glazing + side-panel hints (a touch lighter for depth) -->
+  <g fill="rgb(27,39,51)" fill-opacity="0.06">
+    <polygon points="70,308 88,308 88,320 66,320"/>              <!-- cab 1 raked windscreen -->
+    <polygon points="192,308 210,308 214,320 192,320"/>          <!-- cab 2 raked windscreen -->
+    <rect x="96" y="309" width="88" height="9"  rx="1"/>          <!-- side window strip -->
+    <rect x="92" y="332" width="96" height="9"  rx="2"/>          <!-- side louvre / vent band -->
+    <rect x="262" y="320" width="152" height="10" rx="2"/>
+    <rect x="462" y="320" width="152" height="10" rx="2"/>
+    <rect x="662" y="320" width="152" height="10" rx="2"/>
+    <rect x="862" y="320" width="152" height="10" rx="2"/>
+    <rect x="1062" y="320" width="152" height="10" rx="2"/>
+    <rect x="1262" y="320" width="152" height="10" rx="2"/>
+  </g>
+
+  <!-- bogies: frames plus wheels; wheel bottoms sit on the rail (cy = 372 - r) -->
+  <g fill="rgb(27,39,51)" fill-opacity="0.14">
+    <!-- loco: two three-axle bogies at the ends, open daylight between them (r=9 -> cy=363) -->
+    <rect x="61"  y="355" width="64" height="9" rx="2"/>
+    <circle cx="70"  cy="363" r="9"/><circle cx="92"  cy="363" r="9"/><circle cx="114" cy="363" r="9"/>
+    <rect x="159" y="355" width="64" height="9" rx="2"/>
+    <circle cx="168" cy="363" r="9"/><circle cx="190" cy="363" r="9"/><circle cx="212" cy="363" r="9"/>
+
+    <!-- wagons: two two-axle bogies each (r=8 -> cy=364) -->
+    <rect x="270" y="358" width="44" height="8" rx="2"/><circle cx="280" cy="364" r="8"/><circle cx="304" cy="364" r="8"/>
+    <rect x="362" y="358" width="44" height="8" rx="2"/><circle cx="372" cy="364" r="8"/><circle cx="396" cy="364" r="8"/>
+    <rect x="470" y="358" width="44" height="8" rx="2"/><circle cx="480" cy="364" r="8"/><circle cx="504" cy="364" r="8"/>
+    <rect x="562" y="358" width="44" height="8" rx="2"/><circle cx="572" cy="364" r="8"/><circle cx="596" cy="364" r="8"/>
+    <rect x="670" y="358" width="44" height="8" rx="2"/><circle cx="680" cy="364" r="8"/><circle cx="704" cy="364" r="8"/>
+    <rect x="762" y="358" width="44" height="8" rx="2"/><circle cx="772" cy="364" r="8"/><circle cx="796" cy="364" r="8"/>
+    <rect x="870" y="358" width="44" height="8" rx="2"/><circle cx="880" cy="364" r="8"/><circle cx="904" cy="364" r="8"/>
+    <rect x="962" y="358" width="44" height="8" rx="2"/><circle cx="972" cy="364" r="8"/><circle cx="996" cy="364" r="8"/>
+    <rect x="1070" y="358" width="44" height="8" rx="2"/><circle cx="1080" cy="364" r="8"/><circle cx="1104" cy="364" r="8"/>
+    <rect x="1162" y="358" width="44" height="8" rx="2"/><circle cx="1172" cy="364" r="8"/><circle cx="1196" cy="364" r="8"/>
+    <rect x="1270" y="358" width="44" height="8" rx="2"/><circle cx="1280" cy="364" r="8"/><circle cx="1304" cy="364" r="8"/>
+    <rect x="1362" y="358" width="44" height="8" rx="2"/><circle cx="1372" cy="364" r="8"/><circle cx="1396" cy="364" r="8"/>
+  </g>
+
+  <!-- "hot bearing" detections, in the tool's heatmap colours (centred on the axle) -->
+  <g>
+    <circle cx="596" cy="364" r="12" fill="rgb(225,200,90)" fill-opacity="0.18"/>
+    <circle cx="596" cy="364" r="6"  fill="rgb(225,200,90)" fill-opacity="0.60"/>
+    <circle cx="304" cy="364" r="14" fill="rgb(214,90,42)"  fill-opacity="0.16"/>
+    <circle cx="304" cy="364" r="7"  fill="rgb(214,90,42)"  fill-opacity="0.55"/>
+    <circle cx="904" cy="364" r="16" fill="rgb(176,0,32)"   fill-opacity="0.16"/>
+    <circle cx="904" cy="364" r="7"  fill="rgb(176,0,32)"   fill-opacity="0.60"/>
+  </g>
+</svg>
