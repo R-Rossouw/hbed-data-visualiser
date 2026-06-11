@@ -17,11 +17,12 @@ specification **BBF3244** and the ITCMS remain authoritative.
 2. Open the tool and **drop the CSV** onto the load area (or click to choose a file).
 3. Pick a **train pass** (sorted hottest-first). Explore:
    - **Thermal strip** — each vehicle is a box; top row = Left bearings, bottom row = Right; one cell
-     per axle, coloured by temperature. Cells reaching 93 °C / 120 °C are outlined.
+     per axle, coloured by temperature. Cells reaching the BBF3244 Type 2 / Type 3 absolute limits are
+     outlined.
    - **Rise above ambient (ΔT)** — diagnostic view (bearing − ambient air temperature). Absolute alarm
      limits are *not* applied here, by design.
    - **Left / Right profile** — both sides traced along the train against the limit lines.
-   - **Left vs Right per axle** — differential view; points outside the band exceed the 40 °C Type 2
+   - **Left vs Right per axle** — differential view; points outside the band exceed the BBF3244 Type 2
      differential limit.
    - **Hottest bearings** — top-10 ranking for the pass.
 4. **Print / Save PDF** captures the current view as a report.
