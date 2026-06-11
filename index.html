@@ -161,7 +161,11 @@ function splitLine(line){const out=[];let c='',q=false;
 function parseCSV(text){
   const lines=text.split(/\r?\n/);
   const hi=lines.findIndex(l=>/^"?Component"?\s*,/.test(l));
-  if(hi<0)throw new Error('Not a recognised ITCMS Conditions export (no "Component" header row found).');
+  if(hi<0){
+    if(lines.some(l=>/^"?State"?\s*,/.test(l)&&/severity/i.test(l)))
+      throw new Error('This looks like an ITCMS "Alarms" export. The Data Visualiser currently reads "Conditions" exports (per-axle bearing temperatures) — please run a Conditions query for the detector and date range. Alarms support is planned.');
+    throw new Error('Not a recognised ITCMS Conditions export (no "Component" header row found).');
+  }
   const hdr=splitLine(lines[hi]).map(clean), ix={};hdr.forEach((h,i)=>ix[h]=i);
   for(const n of ['Train #','V Pos','M Pos','Side','Type','Value'])
     if(!(n in ix))throw new Error('Missing expected column: '+n);
