@@ -10,3 +10,6 @@ desktop.ini
 # sample data — do not publish operational ITCMS exports
 sample-data/
 *.csv
+
+# private working notes — never publish
+HANDOFF.md
