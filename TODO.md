@@ -10,6 +10,8 @@
 - [x] Hottest-bearings ranking
 - [x] Print / Save-as-PDF
 - [x] BBF3244 limits as single source of truth
+- [ ] Add dummy data as example to illustrate visualizer tool outputs(query(10).csv could be a decent reference maybe)
+
 
 ## Phase 2
 - [ ] Automated pattern read (stuck-brake vs isolated-bearing) — tune against real brake-drag examples before release
