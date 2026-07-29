@@ -1,15 +1,71 @@
-# local / OS
+# PUBLIC REPO. Anything committed here is visible to the world.
+#
+# This visualiser reads its data in the browser (drag-and-drop / file picker,
+# accept=".csv,.txt") — no real data file ever needs to be committed. So data
+# and document formats are blocked BY DEFAULT, and anything genuinely meant for
+# publication has to be un-ignored deliberately below.
+#
+# Why deny-by-default: since 2026-07-29 sync.ps1 commits and pushes automatically,
+# so a file left in this folder would be published without anyone reviewing it.
+# Rule of thumb: synthetic fixtures only, never real ITCMS/HBD exports or site IDs.
+
+# --- tabular / data exports ---
+*.csv
+*.tsv
+*.psv
+*.txt
+*.xls
+*.xlsx
+*.xlsm
+*.xlsb
+*.ods
+*.parquet
+*.db
+*.sqlite
+*.sqlite3
+
+# --- JSON is a common export format, so block it too. Tooling files are
+#     re-included; add others explicitly if the project ever needs them.
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!.github/**/*.json
+
+# --- documents and mail (reports, extracts, correspondence) ---
+*.doc
+*.docx
+*.pdf
+*.ppt
+*.pptx
+*.msg
+*.eml
+
+# --- archives (an easy way to smuggle a data folder in) ---
+*.zip
+*.7z
+*.rar
+*.tar
+*.gz
+
+# --- folders that tend to accumulate real data ---
+sample-data/
+data/
+exports/
+raw/
+
+# --- deliberate escape hatch --------------------------------------------------
+# Synthetic, hand-made fixtures are allowed, but must be named so it is obvious
+# they are fake, and must live in fixtures/. Nothing else gets through.
+!fixtures/synthetic-*.csv
+!fixtures/synthetic-*.json
+
+# --- private working notes — never publish ---
+HANDOFF.md
+
+# --- local / OS / editor ---
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# editor
 .vscode/
 .idea/
-
-# sample data — do not publish operational ITCMS exports
-sample-data/
-*.csv
-
-# private working notes — never publish
-HANDOFF.md
